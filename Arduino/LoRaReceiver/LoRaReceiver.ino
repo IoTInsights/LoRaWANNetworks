@@ -23,22 +23,20 @@ SOFTWARE.
 **/
 
 /*
-This is the example "Simple LoRa Sender"
+This is the example "Simple LoRa Receiver"
 from the book "IoT Networks with LoRaWAN" https://leanpub.com/iot-networks-with-lorawan
 */
 
 #include <SPI.h>
 #include <LoRa.h>
 
-int counter = 0;
-
 void setup() {
   Serial.begin(115200);
   while (!Serial);
-  Serial.println(F("Starting LoRa Sender"));
+  Serial.println(F("Starting LoRa Receiver"));
 
   if (!LoRa.begin(868100000)) { // Initialize the LoRa module
-    Serial.println(F("Starting LoRa Sender failed!"));
+    Serial.println(F("Starting LoRa Receiver failed!"));
     while (1);
   }
 
@@ -47,15 +45,16 @@ void setup() {
 }
 
 void loop() {
-  Serial.print(F("Send Packet: "));
-  Serial.println(counter);
+  int packetSize = LoRa.parsePacket();    // try to parse packet
+  if (packetSize > 0) {                   // Received a packet
+    Serial.print(F("Received packet '"));
 
-  LoRa.beginPacket();         // Start a packet
-  LoRa.print(F("Packet "));   // Add a string
-  LoRa.print(counter);        // add the counter as string
-  LoRa.endPacket();           // Send the Packet
+    while (LoRa.available()) {            // read while data is available
+      Serial.print((char)LoRa.read());    // print the data to the serial port
+    }
 
-  counter++;
-  delay(5000);                // Wait 5 seconds
+    Serial.print(F("' with RSSI "));         
+    Serial.println(LoRa.packetRssi());    // Print the RSSI
+  }
 }
 
