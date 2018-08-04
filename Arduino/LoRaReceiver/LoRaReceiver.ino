@@ -53,7 +53,7 @@ void loop() {
       Serial.print((char)LoRa.read());    // print the data to the serial port
     }
 
-    Serial.print(F("' with RSSI "));         
+    Serial.print(F("' with RSSI "));
     Serial.println(LoRa.packetRssi());    // Print the RSSI
   }
 }
