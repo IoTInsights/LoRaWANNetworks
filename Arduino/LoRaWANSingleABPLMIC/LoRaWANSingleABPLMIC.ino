@@ -209,9 +209,9 @@ void setup() {
 //    LMIC.dn2Freq = 868100000;
 
     // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
-    // LMIC_setDrTxpow(DR_SF7,14);
+    LMIC_setDrTxpow(DR_SF7,14);
 
-    forceTxSingleChannelDr();
+//    forceTxSingleChannelDr();
 
 //    LMIC.rxDelay = 3;
 

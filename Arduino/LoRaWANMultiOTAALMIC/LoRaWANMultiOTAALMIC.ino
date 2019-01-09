@@ -33,6 +33,22 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
+#include <DHT.h>
+#include <CayenneLPP.h>
+
+#define DHTPIN 4
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+//Variables
+float hum;  //Stores humidity value
+float temp; //Stores temperature value
+
+unsigned long startMillis;
+unsigned long currentMillis;
+unsigned long intervalMillis = 10000;
+
+CayenneLPP lpp(51);
 
 //
 // For normal use, we require that you edit the sketch to replace FILLMEIN
@@ -95,7 +111,7 @@ void os_getDevKey (u1_t* buf) {  memcpy_P(buf, APPKEY, 16);}
 
 #endif
 
-static uint8_t mydata[] = "Hello, world!";
+static int8_t mydata[] = {0x00, 0x00, 0x00, 0x00 };
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -228,15 +244,40 @@ void do_send(osjob_t* j){
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
         // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+
+        lpp.reset();
+        lpp.addTemperature(1, temp);
+        lpp.addRelativeHumidity(2, hum);
+        
+        LMIC_setTxData2(1, lpp.getBuffer(), lpp.getSize(), 0);
         Serial.println(F("Packet queued"));
     }
     // Next TX is scheduled after TX_COMPLETE event.
 }
 
+void do_measure() {
+    hum = dht.readHumidity();
+    temp= dht.readTemperature();
+    
+    //Print temp and humidity values to serial monitor
+    Serial.print("Humidity: ");
+    Serial.print(hum);
+    Serial.print(" %, Temp: ");
+    Serial.print(temp);
+    Serial.println(" Celsius");
+}
+
 void setup() {
     Serial.begin(115200);
     Serial.println(F("Starting"));
+
+    Serial.print("Tics per Second: ");
+    Serial.println(OSTICKS_PER_SEC);
+
+    dht.begin();
+    delay(2000);
+
+    do_measure();
 
     #ifdef VCC_ENABLE
     // For Pinoccio Scout boards
@@ -244,6 +285,9 @@ void setup() {
     digitalWrite(VCC_ENABLE, HIGH);
     delay(1000);
     #endif
+
+    startMillis = millis();
+    currentMillis = startMillis;
 
     // LMIC init
     os_init();
@@ -264,7 +308,7 @@ void setup() {
     // TTN uses SF9 for its RX2 window.
     LMIC.dn2Dr = DR_SF9;
 
-    LMIC.dn2Dr = DR_SF12;
+//    LMIC.dn2Dr = DR_SF12;
 #endif
 
     LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
@@ -278,5 +322,12 @@ void setup() {
 }
 
 void loop() {
+    currentMillis = millis();
+    
+    if ((currentMillis - startMillis) > intervalMillis) {
+      startMillis = currentMillis;
+      do_measure();
+    }
+  
     os_runloop_once();
 }
