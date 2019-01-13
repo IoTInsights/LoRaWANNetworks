@@ -173,7 +173,10 @@ void onEvent (ev_t ev) {
             // Disable link check validation (automatically enabled
             // during join, but because slow data rates change max TX
 	          // size, we don't use it in this example.
-            LMIC_setLinkCheckMode(0);
+            // LMIC_setLinkCheckMode(0);
+
+            LMIC_setAdrMode(1);
+            LMIC_setLinkCheckMode(1);
             break;
         /*
         || This event is defined but not used in the code. No
@@ -226,11 +229,11 @@ void onEvent (ev_t ev) {
         ||    Serial.println(F("EV_SCAN_FOUND"));
         ||    break;
         */
-        /*
+        
         case EV_TXSTART:
             Serial.println(F("EV_TXSTART"));
             break;
-        */
+        
         default:
             Serial.print(F("Unknown event: "));
             Serial.println((unsigned) ev);
@@ -293,23 +296,6 @@ void setup() {
     os_init();
     // Reset the MAC state. Session and pending data transfers will be discarded.
     LMIC_reset();
-
-    LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
-    LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(3, 867100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(4, 867300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
-
-#ifdef TTN
-    // TTN uses SF9 for its RX2 window.
-    LMIC.dn2Dr = DR_SF9;
-
-//    LMIC.dn2Dr = DR_SF12;
-#endif
 
     LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
 
